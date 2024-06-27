@@ -21,28 +21,28 @@ class Aspect implements IPreContractCallJP {
    */
   preContractCall(input: PreContractCallInput): void {
     // read the throttle config from the properties and decode
-    const interval: number = sys.aspect.property.get<u64>("interval") as f64;
-    const limit: number = sys.aspect.property.get<u64>("limit") as f64;
+    const interval = sys.aspect.property.get<u64>("interval");
+    const limit = sys.aspect.property.get<u64>("limit");
 
     // get the contract address, from address and build the storage prefix
-    const contractAddress: string = uint8ArrayToHex(input.call!.to);
-    const from: string = uint8ArrayToHex(input.call!.from);
-    const storagePrefix: string = `${contractAddress}:${from}`;
+    const contractAddress = uint8ArrayToHex(input.call!.to);
+    const from = uint8ArrayToHex(input.call!.from);
+    const storagePrefix = `${contractAddress}:${from}`;
 
     // load the current block timestamp
-    const blockTimeBytes: Uint8Array = sys.hostApi.runtimeContext.get(
+    const blockTimeBytes = sys.hostApi.runtimeContext.get(
       "block.header.timestamp"
     );
-    const blockTime: number = Protobuf.decode<UintData>(
+    const blockTime = Protobuf.decode<UintData>(
       blockTimeBytes,
       UintData.decode
-    ).data as f64;
+    ).data;
 
     // load last execution timestamp
     const lastExecState = sys.aspect.mutableState.get<u64>(
       storagePrefix + "lastExecAt"
     );
-    const lastExec: number = lastExecState.unwrap() as f64;
+    const lastExec = lastExecState.unwrap();
 
     // check if the throttle interval has passed, revert if not
     if (lastExec > 0 && blockTime - lastExec < interval) {
@@ -53,7 +53,7 @@ class Aspect implements IPreContractCallJP {
     const execTimeState = sys.aspect.mutableState.get<u64>(
       storagePrefix + "execTimes"
     );
-    const execTimes: number = execTimeState.unwrap() as f64;
+    const execTimes = execTimeState.unwrap();
     if (limit && execTimes >= limit) {
       sys.revert("execution time exceeded");
     }
